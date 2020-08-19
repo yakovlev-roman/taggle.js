@@ -616,8 +616,6 @@
                 return;
             }
 
-            val = this._getAllowedTagValueByLabel(val, true);
-
             var currentTagLength = self.tag.values.length;
             var tagIndex = _clamp(index || currentTagLength, 0, currentTagLength);
             var li = self._createTag(val, tagIndex);
