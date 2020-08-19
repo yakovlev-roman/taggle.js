@@ -1,6 +1,6 @@
 {
   "name": "taggle-autocomplete",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Taggle is a dependency-less tagging library",
   "author": "Sean Coker <sean@seancoker.com>",
   "url": "https://sean.is/poppin/tags",
