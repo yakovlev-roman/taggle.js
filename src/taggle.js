@@ -7,6 +7,7 @@
  */
 
 // @todo remove bower from next major version
+console.log('taggle-clone-init');
 
 (function(root, factory) {
     'use strict';

@@ -1,12 +1,12 @@
 {
-  "name": "taggle",
-  "version": "1.15.0",
+  "name": "taggle-autocomplete",
+  "version": "0.0.1",
   "description": "Taggle is a dependency-less tagging library",
   "author": "Sean Coker <sean@seancoker.com>",
   "url": "https://sean.is/poppin/tags",
   "repository": {
     "type": "git",
-    "url": "git@github.com:okcoker/taggle.js.git"
+    "url": "git+ssh://git@github.com/okcoker/taggle.js.git"
   },
   "browserDependencies": {},
   "devDependencies": {
@@ -39,7 +39,7 @@
   "main": "src/taggle.js",
   "types": "types/taggle.d.ts",
   "directories": {
-    "test": "test"
+    "example": "example"
   },
   "browserslist": [
     "IE >= 8",
