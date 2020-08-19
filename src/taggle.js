@@ -7,7 +7,6 @@
  */
 
 // @todo remove bower from next major version
-console.log('taggle-clone-init');
 
 (function(root, factory) {
     'use strict';
@@ -489,7 +488,7 @@ console.log('taggle-clone-init');
         }
 
         var sensitive = this.settings.preserveCase;
-        var allowed = this.settings.allowedTags;
+        var allowed = this._getAllowedTagsText();
 
         if (allowed.length && !this._tagIsInArray(text, allowed, sensitive)) {
             return false;
@@ -501,6 +500,68 @@ console.log('taggle-clone-init');
         }
 
         return true;
+    };
+
+    /**
+     * Returns a list of allowed tags labels
+     *
+     * @return {Array}
+     */
+    Taggle.prototype._getAllowedTagsText = function() {
+        var result = [];
+        var allowed = this.settings.allowedTags;
+
+        if(allowed && allowed.length) {
+            allowed.forEach(function (tag) {
+                if (typeof(tag.value) !== 'undefined' || typeof(tag.text) !== 'undefined') {
+                    result.push(tag.text || tag.value);
+                } else {
+                    result.push(tag);
+                }
+            });
+        }
+
+        return result;
+    };
+
+    /**
+     * Returns the value of the tag by label
+     * @param  {String} text
+     * @param  {Boolean} caseSensitive
+     *
+     * @return {String|null}
+     */
+    Taggle.prototype._getAllowedTagValueByLabel = function(text, caseSensitive) {
+        var check,
+            result,
+            allowed = this.settings.allowedTags;
+
+        if(allowed && allowed.length) {
+            allowed.forEach(function (tag) {
+                if (typeof(tag.text) !== 'undefined') {
+                    check = tag.text;
+                    result = tag.value;
+                } else if(typeof(tag.value) !== 'undefined') {
+                    check = result = tag.value;
+                } else {
+                    check = result = tag;
+                }
+
+                if(caseSensitive) {
+                    if(check == text) {
+                        return result;
+                    }
+                } else {
+                    if(check.toLowerCase() == text.toLowerCase()) {
+                        return result;
+                    }
+                }
+            });
+
+            return null;
+        }
+
+        return text;
     };
 
     /**
@@ -554,6 +615,8 @@ console.log('taggle-clone-init');
             if (!self._canAdd(e, val)) {
                 return;
             }
+
+            val = this._getAllowedTagValueByLabel(val, true);
 
             var currentTagLength = self.tag.values.length;
             var tagIndex = _clamp(index || currentTagLength, 0, currentTagLength);
@@ -847,7 +910,7 @@ console.log('taggle-clone-init');
         li.className = 'taggle ' + this.settings.additionalTagClasses;
 
         hidden.type = 'hidden';
-        hidden.value = text;
+        hidden.value = this._getAllowedTagValueByLabel(text);
         hidden.name = this.settings.hiddenInputName;
 
         li.appendChild(span);
