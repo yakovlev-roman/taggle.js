@@ -43,10 +43,18 @@
     animation-duration: 1s;
     -webkit-animation-fill-mode: both;
     animation-fill-mode: both;
+    opacity: 1;
 }
 
 .taggle_list .taggle_hot {
     background: #cac8c4;
+}
+
+.taggle_list .taggle.taggle_error {
+    background: #e7b2b2;
+    transition: all 1s linear 0s;
+    transform: translateY(-100%);
+    opacity: 0;
 }
 
 .taggle_list .taggle .close {
