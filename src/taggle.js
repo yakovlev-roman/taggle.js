@@ -538,25 +538,29 @@
 
         if(allowed && allowed.length) {
             console.log('Перебираем все таги:');
+            console.log('Ищем таг: '+text);
             allowed.forEach(function (tag) {
-                console.log(tag);
+                console.log('tag:: '+tag);
                 if (typeof(tag.text) !== 'undefined') {
+                    console.log('text and value');
                     check = tag.text;
-                    result = tag.value;
+                    result = tag.value || tag.text;
                 } else if(typeof(tag.value) !== 'undefined') {
+                    console.log('value');
                     check = result = tag.value;
                 } else {
+                    console.log('none');
                     check = result = tag;
                 }
 
                 if(caseSensitive) {
                     if(check == text) {
-                        console.log('Вернули '+result);
+                        console.log('Вернули1 '+result);
                         return result;
                     }
                 } else {
                     if(check.toLowerCase() == text.toLowerCase()) {
-                        console.log('Вернули '+result);
+                        console.log('Вернули2 '+result);
                         return result;
                     }
                 }
