@@ -25,7 +25,7 @@ declare namespace Taggle {
         /** @deprecated */
         attachTagId?: boolean;
 
-        allowedTags?: ReadonlyArray<string>;
+        allowedTags?: Array<object>;
 
         disallowedTags?: ReadonlyArray<string>;
 
