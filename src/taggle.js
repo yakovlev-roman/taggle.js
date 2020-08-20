@@ -537,7 +537,9 @@
             allowed = this.settings.allowedTags;
 
         if(allowed && allowed.length) {
+            console.log('Перебираем все таги:');
             allowed.forEach(function (tag) {
+                console.log(tag);
                 if (typeof(tag.text) !== 'undefined') {
                     check = tag.text;
                     result = tag.value;
@@ -549,17 +551,22 @@
 
                 if(caseSensitive) {
                     if(check == text) {
+                        console.log('Вернули '+result);
                         return result;
                     }
                 } else {
                     if(check.toLowerCase() == text.toLowerCase()) {
+                        console.log('Вернули '+result);
                         return result;
                     }
                 }
             });
+            console.log('Закончили перебор тагов, вернули null');
 
             return null;
         }
+
+        console.log('Вернули без перебора '+text);
 
         return text;
     };
@@ -909,6 +916,9 @@
 
         hidden.type = 'hidden';
         hidden.value = this._getAllowedTagValueByLabel(text);
+        console.log('text='+text);
+        console.log('val='+this._getAllowedTagValueByLabel(text));
+        console.log('=======');
         hidden.name = this.settings.hiddenInputName;
 
         li.appendChild(span);
