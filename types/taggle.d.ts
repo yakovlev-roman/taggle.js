@@ -45,7 +45,7 @@ declare namespace Taggle {
 
         tagFormatter?: (li: HTMLLIElement) => HTMLLIElement;
 
-        onBeforeTagAdd?: (e: Event, tag: string) => boolean;
+        onBeforeTagAdd?: (e: Event, tag: string) => false | string;
 
         onTagAdd?: (e: Event, tag: string) => void;
 

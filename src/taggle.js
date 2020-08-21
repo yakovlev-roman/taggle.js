@@ -8,32 +8,31 @@
 
 // @todo remove bower from next major version
 
-(function(root, factory) {
+(function (root, factory) {
     'use strict';
     var libName = 'Taggle';
 
     /* global define, module */
     if (typeof define === 'function' && define.amd) {
-        define([], function() {
+        define([], function () {
             var module = factory();
             root[libName] = module;
             return module;
         });
-    }
-    else if (typeof module === 'object' && module.exports) {
+    } else if (typeof module === 'object' && module.exports) {
         module.exports = root[libName] = factory();
-    }
-    else {
+    } else {
         root[libName] = factory();
     }
-}(this, function() {
+}(this, function () {
     'use strict';
     /////////////////////
     // Default options //
     /////////////////////
 
-    var noop = function() {};
-    var retTrue = function() {
+    var noop = function () {
+    };
+    var retTrue = function () {
         return true;
     };
     var BACKSPACE = 8;
@@ -219,6 +218,7 @@
         /**
          * Function hook called before a tag is added. Return false
          * to prevent tag from being added
+         * !! and return new formated tag
          * @param  {String} tag The tag to be added
          */
         onBeforeTagAdd: noop,
@@ -273,11 +273,9 @@
     function _on(element, eventName, handler) {
         if (element.addEventListener) {
             element.addEventListener(eventName, handler, false);
-        }
-        else if (element.attachEvent) {
+        } else if (element.attachEvent) {
             element.attachEvent('on' + eventName, handler);
-        }
-        else {
+        } else {
             element['on' + eventName] = handler;
         }
     }
@@ -285,11 +283,9 @@
     function _off(element, eventName, handler) {
         if (element.removeEventListener) {
             element.removeEventListener(eventName, handler, false);
-        }
-        else if (element.detachEvent) {
+        } else if (element.detachEvent) {
             element.detachEvent('on' + eventName, handler);
-        }
-        else {
+        } else {
             element['on' + eventName] = null;
         }
     }
@@ -301,8 +297,7 @@
     function _setText(el, text) {
         if (window.attachEvent && !window.addEventListener) { // <= IE8
             el.innerText = text;
-        }
-        else {
+        } else {
             el.textContent = text;
         }
     }
@@ -317,10 +312,12 @@
 
     function autocomplete(inp, arr) {
         var currentFocus;
-        inp.addEventListener("input", function(e) {
+        inp.addEventListener("input", function (e) {
             var a, b, i, val = this.value;
             closeAllLists();
-            if (!val) { return false;}
+            if (!val) {
+                return false;
+            }
             currentFocus = -1;
 
             a = document.createElement("DIV");
@@ -335,7 +332,7 @@
                     b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
                     b.innerHTML += arr[i].substr(val.length);
                     b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-                    b.addEventListener("click", function(e) {
+                    b.addEventListener("click", function (e) {
                         inp.value = this.getElementsByTagName("input")[0].value;
                         closeAllLists();
                     });
@@ -344,7 +341,7 @@
             }
         });
 
-        inp.addEventListener("keydown", function(e) {
+        inp.addEventListener("keydown", function (e) {
             var x = document.getElementById(this.id + "autocomplete-list");
             if (x) x = x.getElementsByTagName("div");
             if (e.keyCode == 40) {
@@ -383,17 +380,19 @@
                 }
             }
         }
+
         /*execute a function when someone clicks in the document:*/
         document.addEventListener("click", function (e) {
             closeAllLists(e.target);
         });
     }
+
     /**
      * Constructor
      * @param {Mixed} el ID of an element or the actual element
      * @param {Object} options
      */
-    var Taggle = function(el, options) {
+    var Taggle = function (el, options) {
         // @todo also check that option type is correct #106
         // @todo uncomment this in next major version
         // for (var key in (options || {})) {
@@ -430,6 +429,7 @@
         this.autocomplete = {
             currentFocus: -1,
             showBlock: null,
+            clickOnBlock: false,
         };
 
         if (typeof el === 'string') {
@@ -450,7 +450,7 @@
     /**
      * Gets all the layout measurements up front
      */
-    Taggle.prototype._setMeasurements = function() {
+    Taggle.prototype._setMeasurements = function () {
         this.measurements.container.rect = this.container.getBoundingClientRect();
         this.measurements.container.style = window.getComputedStyle(this.container);
 
@@ -466,7 +466,7 @@
     /**
      * Setup the div container for tags to be entered
      */
-    Taggle.prototype._setupTextarea = function() {
+    Taggle.prototype._setupTextarea = function () {
         var fontSize;
 
         this.list.className = 'taggle_list';
@@ -512,7 +512,7 @@
     /**
      * Attaches neccessary events
      */
-    Taggle.prototype._attachEvents = function() {
+    Taggle.prototype._attachEvents = function () {
         var self = this;
 
         if (this._eventsAttached) {
@@ -522,6 +522,12 @@
         this._eventsAttached = true;
 
         function containerClick() {
+            var limit = self.settings.maxTags;
+            if (limit !== null && limit <= self.getTagValues().length) {
+                self.input.blur();
+                return false;
+            }
+
             self.input.focus();
         }
 
@@ -545,7 +551,7 @@
         return true;
     };
 
-    Taggle.prototype._detachEvents = function() {
+    Taggle.prototype._detachEvents = function () {
         if (!this._eventsAttached) {
             return false;
         }
@@ -561,7 +567,7 @@
         _off(this.input, 'keyup', this._handleKeyup);
         _off(this.input, 'input', this._handleInput);
 
-        this._closeButtons.forEach(function(button, i) {
+        this._closeButtons.forEach(function (button, i) {
             var eventFn = self._closeEvents[i];
 
             _off(button, 'click', eventFn);
@@ -574,7 +580,7 @@
      * Resizes the hidden input where user types to fill in the
      * width of the div
      */
-    Taggle.prototype._fixInputWidth = function() {
+    Taggle.prototype._fixInputWidth = function () {
         this._setMeasurements();
         this._setInputWidth();
     };
@@ -585,7 +591,7 @@
      * @param  {String} text tag value
      * @return {Boolean}
      */
-    Taggle.prototype._canAdd = function(e, text) {
+    Taggle.prototype._canAdd = function (e, text) {
         if (!text) {
             return false;
         }
@@ -594,8 +600,11 @@
             return false;
         }
 
-        if (this.settings.onBeforeTagAdd(e, text) === false) {
+        var beforeTagAddResult = this.settings.onBeforeTagAdd(e, text);
+        if (beforeTagAddResult === false) {
             return false;
+        } else if (typeof (beforeTagAddResult) !== 'undefined') {
+            this.input.value = text = beforeTagAddResult;
         }
 
         if (!this.settings.allowDuplicates && this._hasDupes(text)) {
@@ -606,6 +615,7 @@
         var allowed = this._getAllowedTagsText();
 
         if (allowed.length && !this._tagIsInArray(text, allowed, sensitive)) {
+            ;
             return false;
         }
 
@@ -620,13 +630,13 @@
     /**
      * Update settings.allowedTags to object[]
      */
-    Taggle.prototype._updateAllowedTags = function() {
+    Taggle.prototype._updateAllowedTags = function () {
         var result = [];
         var allowed = this.settings.allowedTags;
 
-        if(allowed && allowed.length) {
+        if (allowed && allowed.length) {
             allowed.forEach(function (tag) {
-                if (typeof(tag.value) !== 'undefined' || typeof(tag.text) !== 'undefined') {
+                if (typeof (tag.value) !== 'undefined' || typeof (tag.text) !== 'undefined') {
                     result.push({text: tag.text || tag.value, value: tag.value || tag.text});
                 } else {
                     result.push({text: tag, value: tag});
@@ -642,11 +652,11 @@
      *
      * @return {Array}
      */
-    Taggle.prototype._getAllowedTagsText = function() {
+    Taggle.prototype._getAllowedTagsText = function () {
         var result = [];
         var allowed = this.settings.allowedTags;
 
-        if(allowed && allowed.length) {
+        if (allowed && allowed.length) {
             allowed.forEach(function (tag) {
                 result.push(tag.text);
             });
@@ -662,21 +672,21 @@
      *
      * @return {String|null}
      */
-    Taggle.prototype._getAllowedTagValueByLabel = function(text, caseSensitive) {
+    Taggle.prototype._getAllowedTagValueByLabel = function (text, caseSensitive) {
         var checkText,
             returnValue,
             allowed = this.settings.allowedTags;
 
-        if(allowed && allowed.length) {
-            for(var index in allowed) {
+        if (allowed && allowed.length) {
+            for (var index in allowed) {
                 var tag = allowed[index];
 
-                if(caseSensitive) {
-                    if(tag.text == text) {
+                if (caseSensitive) {
+                    if (tag.text == text) {
                         return tag.value;
                     }
                 } else {
-                    if(tag.text.toLowerCase() == text.toLowerCase()) {
+                    if (tag.text.toLowerCase() == text.toLowerCase()) {
                         return tag.value;
                     }
                 }
@@ -696,16 +706,16 @@
      * @param  {Boolean} caseSensitive
      * @return {Boolean}
      */
-    Taggle.prototype._tagIsInArray = function(text, arr, caseSensitive) {
+    Taggle.prototype._tagIsInArray = function (text, arr, caseSensitive) {
         if (caseSensitive) {
             return arr.indexOf(text) !== -1;
         }
 
-        var lowercased = [].slice.apply(arr).map(function(str) {
+        var lowercased = [].slice.apply(arr).map(function (str) {
             return str.toLowerCase();
         });
 
-        return lowercased.indexOf(text) !== -1;
+        return lowercased.indexOf(text.toLowerCase()) !== -1;
     };
 
     /**
@@ -714,7 +724,7 @@
      * @param  {String} text
      * @param  {Number} index
      */
-    Taggle.prototype._add = function(e, text, index) {
+    Taggle.prototype._add = function (e, text, index) {
         var self = this;
         var values = text || '';
         var delimiter = this.settings.delimiter || this.settings.delimeter;
@@ -730,15 +740,21 @@
             }
         }
 
-        values.split(delimiter).map(function(val) {
+        this._autocompleteClose();
+
+        values.split(delimiter).map(function (val) {
             if (self.settings.trimTags) {
                 val = _trim(val);
             }
             return self._formatTag(val);
-        }).forEach(function(val) {
+        }).forEach(function (val) {
+            //update value for beforeAddTag
+            var canAdd = self._canAdd(e, val);
+            val = self.input.value;
+
             var currentTagLength = self.tag.values.length;
             var tagIndex = _clamp(index || currentTagLength, 0, currentTagLength);
-            if (!self._canAdd(e, val)) {
+            if (!canAdd) {
                 // Fix: clear input when can't add tag
                 if (self.settings.clearOnError) {
                     var li = self._createFakeTag(val);
@@ -750,7 +766,7 @@
                     self._setInputWidth();
 
                     li.classList.add('taggle_error');
-                    setTimeout(function(){
+                    setTimeout(function () {
                         li.remove();
                     }, 1000);
                 }
@@ -769,6 +785,7 @@
 
             self.input.value = '';
             self._fixInputWidth();
+
             self._setFocusStateForContainer();
         });
     };
@@ -777,7 +794,7 @@
      * Removes last tag if it has already been probed
      * @param  {Event} e
      */
-    Taggle.prototype._checkPrevOrNextTag = function(e) {
+    Taggle.prototype._checkPrevOrNextTag = function (e) {
         e = e || window.event;
 
         var taggles = this.container.querySelectorAll('.taggle');
@@ -800,12 +817,10 @@
                 this._remove(targetTaggle, e);
                 this._fixInputWidth();
                 this._setFocusStateForContainer();
-            }
-            else {
+            } else {
                 targetTaggle.classList.add(hotClass);
             }
-        }
-        else if (targetTaggle.classList.contains(hotClass)) {
+        } else if (targetTaggle.classList.contains(hotClass)) {
             targetTaggle.classList.remove(hotClass);
         }
     };
@@ -814,7 +829,7 @@
      * Setter for the hidden input.
      * @param {Number} width
      */
-    Taggle.prototype._setInputWidth = function() {
+    Taggle.prototype._setInputWidth = function () {
         var width = this.sizer.getBoundingClientRect().width;
         var max = this.measurements.container.rect.width - this.measurements.container.padding;
         var size = parseInt(this.sizer.style.fontSize, 10);
@@ -830,7 +845,7 @@
      * @param  {String} text
      * @return {Boolean}
      */
-    Taggle.prototype._hasDupes = function(text) {
+    Taggle.prototype._hasDupes = function (text) {
         var needle = this.tag.values.indexOf(text);
         var tagglelist = this.container.querySelector('.taggle_list');
         var dupes;
@@ -858,7 +873,7 @@
      * @param  {Number}  key code
      * @return {Boolean}
      */
-    Taggle.prototype._isConfirmKey = function(key) {
+    Taggle.prototype._isConfirmKey = function (key) {
         var confirmKey = false;
 
         if (this.settings.submitKeys.indexOf(key) > -1) {
@@ -873,7 +888,13 @@
     /**
      * Handles focus state of div container.
      */
-    Taggle.prototype._setFocusStateForContainer = function() {
+    Taggle.prototype._setFocusStateForContainer = function () {
+        var limit = this.settings.maxTags;
+        if (limit !== null && limit <= this.getTagValues().length) {
+            this.input.blur();
+            return false;
+        }
+
         this._fixInputWidth();
 
         if (!this.container.classList.contains(this.settings.containerFocusClass)) {
@@ -887,41 +908,50 @@
      * Runs all the events that need to happen on a blur
      * @param  {Event} e
      */
-    Taggle.prototype._blurEvent = function(e) {
-        if (this.container.classList.contains(this.settings.containerFocusClass)) {
-            this.container.classList.remove(this.settings.containerFocusClass);
-        }
+    Taggle.prototype._blurEvent = function (e) {
+        //need find click on autocompleteBlock.
+        // blur is firsy, then click
+        self = this;
+        setTimeout(function () {
+            if (self.container.classList.contains(self.settings.containerFocusClass)) {
+                self.container.classList.remove(self.settings.containerFocusClass);
+            }
 
-        console.log('blur');
-
-        if (this.settings.saveOnBlur) {
-            e = e || window.event;
-
-            this._setInputWidth();
-
-            if (this.input.value !== '') {
-                this._confirmValidTagEvent(e);
+            if (self.autocomplete.clickOnBlock) {
+                self.autocomplete.clickOnBlock = false;
                 return;
             }
 
-            if (this.tag.values.length) {
-                this._checkPrevOrNextTag(e);
-            }
-        } else if (this.settings.clearOnBlur) {
-            this.input.value = '';
-            this._setInputWidth();
-        }
 
-        if (!this.tag.values.length && !this.input.value) {
-            this._showPlaceholder();
-        }
+            if (self.settings.saveOnBlur) {
+                e = e || window.event;
+
+                self._setInputWidth();
+
+                if (self.input.value !== '') {
+                    self._confirmValidTagEvent(e);
+                    return;
+                }
+
+                if (self.tag.values.length) {
+                    self._checkPrevOrNextTag(e);
+                }
+            } else if (self.settings.clearOnBlur) {
+                self.input.value = '';
+                self._setInputWidth();
+            }
+
+            if (!self.tag.values.length && !self.input.value) {
+                self._showPlaceholder();
+            }
+        }, 200);
     };
 
     /**
      * Runs all the events that need to run on keydown
      * @param  {Event} e
      */
-    Taggle.prototype._keydownEvents = function(e) {
+    Taggle.prototype._keydownEvents = function (e) {
         e = e || window.event;
 
         var key = e.keyCode;
@@ -954,7 +984,7 @@
      * Runs all the events that need to run on keyup
      * @param  {Event} e
      */
-    Taggle.prototype._keyupEvents = function(e) {
+    Taggle.prototype._keyupEvents = function (e) {
         e = e || window.event;
 
         this._backspacePressed = false;
@@ -987,14 +1017,14 @@
         e = e || window.event;
 
         //check AutoComplete
-        if(this.settings.autocomplete && this.settings.allowedTags.length > 0 &&
+        if (this.settings.autocomplete && this.settings.allowedTags.length > 0 &&
             this.input.value.length >= this.settings.autocompleteSybmols) {
             this._autocompleteWork();
         }
 
     };
 
-    Taggle.prototype._moveInput = function(direction) {
+    Taggle.prototype._moveInput = function (direction) {
         var currentIndex = this._inputPosition;
 
         switch (direction) {
@@ -1033,21 +1063,20 @@
      * Confirms the inputted value to be converted to a tag
      * @param  {Event} e
      */
-    Taggle.prototype._confirmValidTagEvent = function(e) {
+    Taggle.prototype._confirmValidTagEvent = function (e) {
         e = e || window.event;
 
         // prevents from jumping out of textarea
         if (e.preventDefault) {
             e.preventDefault();
-        }
-        else {
+        } else {
             e.returnValue = false;
         }
 
         this._add(e, null, this._inputPosition);
     };
 
-    Taggle.prototype._createTag = function(text, index) {
+    Taggle.prototype._createTag = function (text, index) {
         var li = document.createElement('li');
         var close = document.createElement('button');
         var hidden = document.createElement('input');
@@ -1105,7 +1134,7 @@
         return li;
     };
 
-    Taggle.prototype._createFakeTag = function(text) {
+    Taggle.prototype._createFakeTag = function (text) {
         var li = document.createElement('li');
         var span = document.createElement('span');
 
@@ -1139,14 +1168,14 @@
         return li;
     };
 
-    Taggle.prototype._showPlaceholder = function() {
+    Taggle.prototype._showPlaceholder = function () {
         if (this.placeholder) {
             this.placeholder.style.opacity = 1;
             this.placeholder.setAttribute('aria-hidden', 'false');
         }
     };
 
-    Taggle.prototype._hidePlaceholder = function() {
+    Taggle.prototype._hidePlaceholder = function () {
         if (this.placeholder) {
             this.placeholder.style.opacity = 0;
             this.placeholder.setAttribute('aria-hidden', 'true');
@@ -1158,7 +1187,7 @@
      * @param  {li} li List item to remove
      * @param  {Event} e
      */
-    Taggle.prototype._remove = function(li, e) {
+    Taggle.prototype._remove = function (li, e) {
         var self = this;
         var text;
         var elem;
@@ -1215,15 +1244,15 @@
      * @param {String} text Tag text
      * @return {String}
      */
-    Taggle.prototype._formatTag = function(text) {
-        return this.settings.preserveCase ? text : text.toLowerCase();
+    Taggle.prototype._formatTag = function (text) {
+        return this.settings.autocomplete ? text : this.settings.preserveCase ? text : text.toLowerCase();
     };
 
-    Taggle.prototype._isIndexInRange = function(index) {
+    Taggle.prototype._isIndexInRange = function (index) {
         return index >= 0 && index <= this.tag.values.length - 1;
     };
 
-    Taggle.prototype.getTags = function() {
+    Taggle.prototype.getTags = function () {
         return {
             elements: this.getTagElements(),
             values: this.getTagValues()
@@ -1232,25 +1261,25 @@
 
     // @todo
     // @deprecated use getTags().elements
-    Taggle.prototype.getTagElements = function() {
+    Taggle.prototype.getTagElements = function () {
         return [].slice.apply(this.tag.elements);
     };
 
     // @todo
     // @deprecated use getTags().values
-    Taggle.prototype.getTagValues = function() {
+    Taggle.prototype.getTagValues = function () {
         return [].slice.apply(this.tag.values);
     };
 
-    Taggle.prototype.getInput = function() {
+    Taggle.prototype.getInput = function () {
         return this.input;
     };
 
-    Taggle.prototype.getContainer = function() {
+    Taggle.prototype.getContainer = function () {
         return this.container;
     };
 
-    Taggle.prototype.add = function(text, index) {
+    Taggle.prototype.add = function (text, index) {
         var isArr = _isArray(text);
 
         if (isArr) {
@@ -1265,15 +1294,14 @@
                     }
                 }
             }
-        }
-        else {
+        } else {
             this._add(null, text, index);
         }
 
         return this;
     };
 
-    Taggle.prototype.edit = function(text, index) {
+    Taggle.prototype.edit = function (text, index) {
         if (typeof text !== 'string') {
             throw new Error('First edit argument must be of type string');
         }
@@ -1290,8 +1318,7 @@
 
         if (typeof textValue === 'string') {
             this.tag.values[index] = text;
-        }
-        else {
+        } else {
             this.tag.values[index].text = text;
         }
 
@@ -1300,7 +1327,7 @@
         return this;
     };
 
-    Taggle.prototype.move = function(currentIndex, destinationIndex) {
+    Taggle.prototype.move = function (currentIndex, destinationIndex) {
         if (typeof currentIndex !== 'number' || typeof destinationIndex !== 'number') {
             throw new Error('Both arguments must be numbers');
         }
@@ -1338,7 +1365,7 @@
         return this;
     };
 
-    Taggle.prototype.remove = function(text, all) {
+    Taggle.prototype.remove = function (text, all) {
         var len = this.tag.values.length - 1;
         var found = false;
 
@@ -1363,7 +1390,7 @@
         return this;
     };
 
-    Taggle.prototype.removeAll = function() {
+    Taggle.prototype.removeAll = function () {
         for (var i = this.tag.values.length - 1; i >= 0; i--) {
             this._remove(this.tag.elements[i]);
         }
@@ -1373,51 +1400,51 @@
         return this;
     };
 
-    Taggle.prototype.setOptions = function(options) {
+    Taggle.prototype.setOptions = function (options) {
         this.settings = _extend({}, this.settings, options || {});
 
         return this;
     };
 
-    Taggle.prototype.enable = function() {
+    Taggle.prototype.enable = function () {
         var buttons = [].slice.call(this.container.querySelectorAll('button'));
         var inputs = [].slice.call(this.container.querySelectorAll('input'));
 
-        buttons.concat(inputs).forEach(function(el) {
+        buttons.concat(inputs).forEach(function (el) {
             el.removeAttribute('disabled');
         });
 
         return this;
     };
 
-    Taggle.prototype.disable = function() {
+    Taggle.prototype.disable = function () {
         var buttons = [].slice.call(this.container.querySelectorAll('button'));
         var inputs = [].slice.call(this.container.querySelectorAll('input'));
 
-        buttons.concat(inputs).forEach(function(el) {
+        buttons.concat(inputs).forEach(function (el) {
             el.setAttribute('disabled', '');
         });
 
         return this;
     };
 
-    Taggle.prototype.setData = function(data) {
+    Taggle.prototype.setData = function (data) {
         this.data = data;
 
         return this;
     };
 
-    Taggle.prototype.getData = function() {
+    Taggle.prototype.getData = function () {
         return this.data;
     };
 
-    Taggle.prototype.attachEvents = function() {
+    Taggle.prototype.attachEvents = function () {
         var self = this;
 
         var attached = this._attachEvents();
 
         if (attached) {
-            this._closeButtons.forEach(function(button, i) {
+            this._closeButtons.forEach(function (button, i) {
                 var eventFn = self._closeEvents[i];
 
                 _on(button, 'click', eventFn);
@@ -1427,19 +1454,21 @@
         return this;
     };
 
-    Taggle.prototype.removeEvents = function() {
+    Taggle.prototype.removeEvents = function () {
         this._detachEvents();
 
         return this;
     };
 
-    Taggle.prototype._autocompleteWork = function() {
+    Taggle.prototype._autocompleteWork = function () {
         var a, b, i,
             val = this.input.value,
             arr = this.settings.allowedTags;
 
         this._autocompleteClose();
-        if (!val) { return false;}
+        if (!val) {
+            return false;
+        }
         this.autocomplete.currentFocus = -1;
 
         a = document.createElement("DIV");
@@ -1457,8 +1486,8 @@
                 b.innerHTML += arr[i].text.substr(val.length);
                 b.innerHTML += "<input type='hidden' value='" + arr[i].text + "'>";
                 self = this;
-                b.addEventListener("click", function(e) {
-                    console.log('click');
+                b.addEventListener("click", function (e) {
+                    self.autocomplete.clickOnBlock = true;
                     self.input.value = this.getElementsByTagName("input")[0].value;
                     self._add();
                     //TODO Вызвать событие добавления элемента
@@ -1469,7 +1498,7 @@
         }
     };
 
-    Taggle.prototype._autocompleteClose = function(el) {
+    Taggle.prototype._autocompleteClose = function (el) {
         this.autocomplete.showBlock = null;
         var x = document.getElementsByClassName("autocomplete-items");
         for (var i = 0; i < x.length; i++) {
@@ -1479,8 +1508,8 @@
         }
     };
 
-    Taggle.prototype._autocompleteCheckElement = function(direction) {
-        var elements = document.getElementById(this.input.id + "autocomplete-list");
+    Taggle.prototype._autocompleteCheckElement = function (direction) {
+        var elements = document.getElementById(this.input.id + "-autocomplete-list");
         if (elements) elements = elements.getElementsByTagName("div");
 
         switch (direction) {
@@ -1498,7 +1527,7 @@
 
             case ENTER: {
                 if (this.autocomplete.currentFocus > -1) {
-                    e.preventDefault();
+                    window.event.preventDefault();
                     if (elements) elements[this.autocomplete.currentFocus].click();
                 }
             }
@@ -1508,7 +1537,7 @@
         }
     };
 
-    Taggle.prototype._autocompleteAddActive = function(elements) {
+    Taggle.prototype._autocompleteAddActive = function (elements) {
         if (!elements) return false;
         this._autocompleteRemoveActive(elements);
         if (this.autocomplete.currentFocus >= elements.length) this.autocomplete.currentFocus = 0;
@@ -1516,7 +1545,7 @@
         elements[this.autocomplete.currentFocus].classList.add("autocomplete-active");
     };
 
-    Taggle.prototype._autocompleteRemoveActive = function(elements) {
+    Taggle.prototype._autocompleteRemoveActive = function (elements) {
         for (var i = 0; i < elements.length; i++) {
             elements[i].classList.remove("autocomplete-active");
         }
