@@ -8,31 +8,32 @@
 
 // @todo remove bower from next major version
 
-(function (root, factory) {
+(function(root, factory) {
     'use strict';
     var libName = 'Taggle';
 
     /* global define, module */
     if (typeof define === 'function' && define.amd) {
-        define([], function () {
+        define([], function() {
             var module = factory();
             root[libName] = module;
             return module;
         });
-    } else if (typeof module === 'object' && module.exports) {
+    }
+    else if (typeof module === 'object' && module.exports) {
         module.exports = root[libName] = factory();
-    } else {
+    }
+    else {
         root[libName] = factory();
     }
-}(this, function () {
+}(this, function() {
     'use strict';
     /////////////////////
     // Default options //
     /////////////////////
 
-    var noop = function () {
-    };
-    var retTrue = function () {
+    var noop = function() {};
+    var retTrue = function() {
         return true;
     };
     var BACKSPACE = 8;
@@ -273,9 +274,11 @@
     function _on(element, eventName, handler) {
         if (element.addEventListener) {
             element.addEventListener(eventName, handler, false);
-        } else if (element.attachEvent) {
+        }
+        else if (element.attachEvent) {
             element.attachEvent('on' + eventName, handler);
-        } else {
+        }
+        else {
             element['on' + eventName] = handler;
         }
     }
@@ -283,9 +286,11 @@
     function _off(element, eventName, handler) {
         if (element.removeEventListener) {
             element.removeEventListener(eventName, handler, false);
-        } else if (element.detachEvent) {
+        }
+        else if (element.detachEvent) {
             element.detachEvent('on' + eventName, handler);
-        } else {
+        }
+        else {
             element['on' + eventName] = null;
         }
     }
@@ -297,7 +302,8 @@
     function _setText(el, text) {
         if (window.attachEvent && !window.addEventListener) { // <= IE8
             el.innerText = text;
-        } else {
+        }
+        else {
             el.textContent = text;
         }
     }
@@ -306,93 +312,13 @@
         return Math.min(Math.max(val, min), max);
     }
 
-    ////////////////////////////
-    // Aotocomplete functions //
-    ////////////////////////////
-
-    function autocomplete(inp, arr) {
-        var currentFocus;
-        inp.addEventListener("input", function (e) {
-            var a, b, i, val = this.value;
-            closeAllLists();
-            if (!val) {
-                return false;
-            }
-            currentFocus = -1;
-
-            a = document.createElement("DIV");
-            a.setAttribute("id", this.id + "autocomplete-list");
-            a.setAttribute("class", "autocomplete-items");
-
-            this.parentNode.appendChild(a);
-            for (i = 0; i < arr.length; i++) {
-                if (arr[i].substr(0, val.length).toLowerCase() == val.toLowerCase()) {
-                    b = document.createElement("DIV");
-                    /*make the matching letters bold:*/
-                    b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
-                    b.innerHTML += arr[i].substr(val.length);
-                    b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-                    b.addEventListener("click", function (e) {
-                        inp.value = this.getElementsByTagName("input")[0].value;
-                        closeAllLists();
-                    });
-                    a.appendChild(b);
-                }
-            }
-        });
-
-        inp.addEventListener("keydown", function (e) {
-            var x = document.getElementById(this.id + "autocomplete-list");
-            if (x) x = x.getElementsByTagName("div");
-            if (e.keyCode == 40) {
-                currentFocus++;
-                addActive(x);
-            } else if (e.keyCode == 38) {
-                currentFocus--;
-                addActive(x);
-            } else if (e.keyCode == 13) {
-                e.preventDefault();
-                if (currentFocus > -1) {
-                    if (x) x[currentFocus].click();
-                }
-            }
-        });
-
-        function addActive(x) {
-            if (!x) return false;
-            removeActive(x);
-            if (currentFocus >= x.length) currentFocus = 0;
-            if (currentFocus < 0) currentFocus = (x.length - 1);
-            x[currentFocus].classList.add("autocomplete-active");
-        }
-
-        function removeActive(x) {
-            for (var i = 0; i < x.length; i++) {
-                x[i].classList.remove("autocomplete-active");
-            }
-        }
-
-        function closeAllLists(elmnt) {
-            var x = document.getElementsByClassName("autocomplete-items");
-            for (var i = 0; i < x.length; i++) {
-                if (elmnt != x[i] && elmnt != inp) {
-                    x[i].parentNode.removeChild(x[i]);
-                }
-            }
-        }
-
-        /*execute a function when someone clicks in the document:*/
-        document.addEventListener("click", function (e) {
-            closeAllLists(e.target);
-        });
-    }
 
     /**
      * Constructor
      * @param {Mixed} el ID of an element or the actual element
      * @param {Object} options
      */
-    var Taggle = function (el, options) {
+    var Taggle = function(el, options) {
         // @todo also check that option type is correct #106
         // @todo uncomment this in next major version
         // for (var key in (options || {})) {
@@ -428,12 +354,17 @@
 
         this.autocomplete = {
             currentFocus: -1,
-            showBlock: null,
+            showBlock: false,
             clickOnBlock: false,
+            block: null
         };
 
         if (typeof el === 'string') {
             this.container = document.getElementById(el);
+        }
+
+        if(this.settings.autocomplete) {
+            this._autocompleteInit();
         }
 
         this._id = 0;
@@ -450,7 +381,7 @@
     /**
      * Gets all the layout measurements up front
      */
-    Taggle.prototype._setMeasurements = function () {
+    Taggle.prototype._setMeasurements = function() {
         this.measurements.container.rect = this.container.getBoundingClientRect();
         this.measurements.container.style = window.getComputedStyle(this.container);
 
@@ -466,7 +397,7 @@
     /**
      * Setup the div container for tags to be entered
      */
-    Taggle.prototype._setupTextarea = function () {
+    Taggle.prototype._setupTextarea = function() {
         var fontSize;
 
         this.list.className = 'taggle_list';
@@ -512,7 +443,7 @@
     /**
      * Attaches neccessary events
      */
-    Taggle.prototype._attachEvents = function () {
+    Taggle.prototype._attachEvents = function() {
         var self = this;
 
         if (this._eventsAttached) {
@@ -551,7 +482,7 @@
         return true;
     };
 
-    Taggle.prototype._detachEvents = function () {
+    Taggle.prototype._detachEvents = function() {
         if (!this._eventsAttached) {
             return false;
         }
@@ -567,7 +498,7 @@
         _off(this.input, 'keyup', this._handleKeyup);
         _off(this.input, 'input', this._handleInput);
 
-        this._closeButtons.forEach(function (button, i) {
+        this._closeButtons.forEach(function(button, i) {
             var eventFn = self._closeEvents[i];
 
             _off(button, 'click', eventFn);
@@ -580,7 +511,7 @@
      * Resizes the hidden input where user types to fill in the
      * width of the div
      */
-    Taggle.prototype._fixInputWidth = function () {
+    Taggle.prototype._fixInputWidth = function() {
         this._setMeasurements();
         this._setInputWidth();
     };
@@ -591,7 +522,7 @@
      * @param  {String} text tag value
      * @return {Boolean}
      */
-    Taggle.prototype._canAdd = function (e, text) {
+    Taggle.prototype._canAdd = function(e, text) {
         if (!text) {
             return false;
         }
@@ -603,7 +534,7 @@
         var beforeTagAddResult = this.settings.onBeforeTagAdd(e, text);
         if (beforeTagAddResult === false) {
             return false;
-        } else if (typeof (beforeTagAddResult) !== 'undefined') {
+        } else if(typeof(beforeTagAddResult) !== 'undefined') {
             this.input.value = text = beforeTagAddResult;
         }
 
@@ -614,8 +545,7 @@
         var sensitive = this.settings.preserveCase;
         var allowed = this._getAllowedTagsText();
 
-        if (allowed.length && !this._tagIsInArray(text, allowed, sensitive)) {
-            ;
+        if (allowed.length && !this._tagIsInArray(text, allowed, sensitive)) {;
             return false;
         }
 
@@ -630,13 +560,13 @@
     /**
      * Update settings.allowedTags to object[]
      */
-    Taggle.prototype._updateAllowedTags = function () {
+    Taggle.prototype._updateAllowedTags = function() {
         var result = [];
         var allowed = this.settings.allowedTags;
 
-        if (allowed && allowed.length) {
+        if(allowed && allowed.length) {
             allowed.forEach(function (tag) {
-                if (typeof (tag.value) !== 'undefined' || typeof (tag.text) !== 'undefined') {
+                if (typeof(tag.value) !== 'undefined' || typeof(tag.text) !== 'undefined') {
                     result.push({text: tag.text || tag.value, value: tag.value || tag.text});
                 } else {
                     result.push({text: tag, value: tag});
@@ -652,11 +582,11 @@
      *
      * @return {Array}
      */
-    Taggle.prototype._getAllowedTagsText = function () {
+    Taggle.prototype._getAllowedTagsText = function() {
         var result = [];
         var allowed = this.settings.allowedTags;
 
-        if (allowed && allowed.length) {
+        if(allowed && allowed.length) {
             allowed.forEach(function (tag) {
                 result.push(tag.text);
             });
@@ -672,21 +602,21 @@
      *
      * @return {String|null}
      */
-    Taggle.prototype._getAllowedTagValueByLabel = function (text, caseSensitive) {
+    Taggle.prototype._getAllowedTagValueByLabel = function(text, caseSensitive) {
         var checkText,
             returnValue,
             allowed = this.settings.allowedTags;
 
-        if (allowed && allowed.length) {
-            for (var index in allowed) {
+        if(allowed && allowed.length) {
+            for(var index in allowed) {
                 var tag = allowed[index];
 
-                if (caseSensitive) {
-                    if (tag.text == text) {
+                if(caseSensitive) {
+                    if(tag.text == text) {
                         return tag.value;
                     }
                 } else {
-                    if (tag.text.toLowerCase() == text.toLowerCase()) {
+                    if(tag.text.toLowerCase() == text.toLowerCase()) {
                         return tag.value;
                     }
                 }
@@ -706,12 +636,12 @@
      * @param  {Boolean} caseSensitive
      * @return {Boolean}
      */
-    Taggle.prototype._tagIsInArray = function (text, arr, caseSensitive) {
+    Taggle.prototype._tagIsInArray = function(text, arr, caseSensitive) {
         if (caseSensitive) {
             return arr.indexOf(text) !== -1;
         }
 
-        var lowercased = [].slice.apply(arr).map(function (str) {
+        var lowercased = [].slice.apply(arr).map(function(str) {
             return str.toLowerCase();
         });
 
@@ -724,7 +654,7 @@
      * @param  {String} text
      * @param  {Number} index
      */
-    Taggle.prototype._add = function (e, text, index) {
+    Taggle.prototype._add = function(e, text, index) {
         var self = this;
         var values = text || '';
         var delimiter = this.settings.delimiter || this.settings.delimeter;
@@ -742,12 +672,12 @@
 
         this._autocompleteClose();
 
-        values.split(delimiter).map(function (val) {
+        values.split(delimiter).map(function(val) {
             if (self.settings.trimTags) {
                 val = _trim(val);
             }
             return self._formatTag(val);
-        }).forEach(function (val) {
+        }).forEach(function(val) {
             //update value for beforeAddTag
             var canAdd = self._canAdd(e, val);
             val = self.input.value;
@@ -766,7 +696,7 @@
                     self._setInputWidth();
 
                     li.classList.add('taggle_error');
-                    setTimeout(function () {
+                    setTimeout(function(){
                         li.remove();
                     }, 1000);
                 }
@@ -794,7 +724,7 @@
      * Removes last tag if it has already been probed
      * @param  {Event} e
      */
-    Taggle.prototype._checkPrevOrNextTag = function (e) {
+    Taggle.prototype._checkPrevOrNextTag = function(e) {
         e = e || window.event;
 
         var taggles = this.container.querySelectorAll('.taggle');
@@ -817,10 +747,12 @@
                 this._remove(targetTaggle, e);
                 this._fixInputWidth();
                 this._setFocusStateForContainer();
-            } else {
+            }
+            else {
                 targetTaggle.classList.add(hotClass);
             }
-        } else if (targetTaggle.classList.contains(hotClass)) {
+        }
+        else if (targetTaggle.classList.contains(hotClass)) {
             targetTaggle.classList.remove(hotClass);
         }
     };
@@ -829,7 +761,7 @@
      * Setter for the hidden input.
      * @param {Number} width
      */
-    Taggle.prototype._setInputWidth = function () {
+    Taggle.prototype._setInputWidth = function() {
         var width = this.sizer.getBoundingClientRect().width;
         var max = this.measurements.container.rect.width - this.measurements.container.padding;
         var size = parseInt(this.sizer.style.fontSize, 10);
@@ -845,7 +777,7 @@
      * @param  {String} text
      * @return {Boolean}
      */
-    Taggle.prototype._hasDupes = function (text) {
+    Taggle.prototype._hasDupes = function(text) {
         var needle = this.tag.values.indexOf(text);
         var tagglelist = this.container.querySelector('.taggle_list');
         var dupes;
@@ -873,7 +805,7 @@
      * @param  {Number}  key code
      * @return {Boolean}
      */
-    Taggle.prototype._isConfirmKey = function (key) {
+    Taggle.prototype._isConfirmKey = function(key) {
         var confirmKey = false;
 
         if (this.settings.submitKeys.indexOf(key) > -1) {
@@ -888,7 +820,7 @@
     /**
      * Handles focus state of div container.
      */
-    Taggle.prototype._setFocusStateForContainer = function () {
+    Taggle.prototype._setFocusStateForContainer = function() {
         var limit = this.settings.maxTags;
         if (limit !== null && limit <= this.getTagValues().length) {
             this.input.blur();
@@ -901,6 +833,10 @@
             this.container.classList.add(this.settings.containerFocusClass);
         }
 
+        if(this.settings.autocomplete && this.settings.allowedTags.length > 0) {
+            this._autocompleteWork();
+        }
+
         this._hidePlaceholder();
     };
 
@@ -908,11 +844,13 @@
      * Runs all the events that need to happen on a blur
      * @param  {Event} e
      */
-    Taggle.prototype._blurEvent = function (e) {
+    Taggle.prototype._blurEvent = function(e) {
         //need find click on autocompleteBlock.
         // blur is firsy, then click
         self = this;
-        setTimeout(function () {
+        setTimeout(function() {
+            self._autocompleteClose();
+
             if (self.container.classList.contains(self.settings.containerFocusClass)) {
                 self.container.classList.remove(self.settings.containerFocusClass);
             }
@@ -951,7 +889,7 @@
      * Runs all the events that need to run on keydown
      * @param  {Event} e
      */
-    Taggle.prototype._keydownEvents = function (e) {
+    Taggle.prototype._keydownEvents = function(e) {
         e = e || window.event;
 
         var key = e.keyCode;
@@ -984,7 +922,7 @@
      * Runs all the events that need to run on keyup
      * @param  {Event} e
      */
-    Taggle.prototype._keyupEvents = function (e) {
+    Taggle.prototype._keyupEvents = function(e) {
         e = e || window.event;
 
         this._backspacePressed = false;
@@ -1017,14 +955,14 @@
         e = e || window.event;
 
         //check AutoComplete
-        if (this.settings.autocomplete && this.settings.allowedTags.length > 0 &&
+        if(this.settings.autocomplete && this.settings.allowedTags.length > 0 &&
             this.input.value.length >= this.settings.autocompleteSybmols) {
             this._autocompleteWork();
         }
 
     };
 
-    Taggle.prototype._moveInput = function (direction) {
+    Taggle.prototype._moveInput = function(direction) {
         var currentIndex = this._inputPosition;
 
         switch (direction) {
@@ -1063,20 +1001,21 @@
      * Confirms the inputted value to be converted to a tag
      * @param  {Event} e
      */
-    Taggle.prototype._confirmValidTagEvent = function (e) {
+    Taggle.prototype._confirmValidTagEvent = function(e) {
         e = e || window.event;
 
         // prevents from jumping out of textarea
         if (e.preventDefault) {
             e.preventDefault();
-        } else {
+        }
+        else {
             e.returnValue = false;
         }
 
         this._add(e, null, this._inputPosition);
     };
 
-    Taggle.prototype._createTag = function (text, index) {
+    Taggle.prototype._createTag = function(text, index) {
         var li = document.createElement('li');
         var close = document.createElement('button');
         var hidden = document.createElement('input');
@@ -1134,7 +1073,7 @@
         return li;
     };
 
-    Taggle.prototype._createFakeTag = function (text) {
+    Taggle.prototype._createFakeTag = function(text) {
         var li = document.createElement('li');
         var span = document.createElement('span');
 
@@ -1168,14 +1107,14 @@
         return li;
     };
 
-    Taggle.prototype._showPlaceholder = function () {
+    Taggle.prototype._showPlaceholder = function() {
         if (this.placeholder) {
             this.placeholder.style.opacity = 1;
             this.placeholder.setAttribute('aria-hidden', 'false');
         }
     };
 
-    Taggle.prototype._hidePlaceholder = function () {
+    Taggle.prototype._hidePlaceholder = function() {
         if (this.placeholder) {
             this.placeholder.style.opacity = 0;
             this.placeholder.setAttribute('aria-hidden', 'true');
@@ -1187,7 +1126,7 @@
      * @param  {li} li List item to remove
      * @param  {Event} e
      */
-    Taggle.prototype._remove = function (li, e) {
+    Taggle.prototype._remove = function(li, e) {
         var self = this;
         var text;
         var elem;
@@ -1212,20 +1151,23 @@
 
             _off(button, 'click', eventFn);
 
-            li.parentNode.removeChild(li);
+            li.classList.add('removing');
+            setTimeout(function(){
+                li.parentNode.removeChild(li);
 
-            // Going to assume the indicies match for now
-            self.tag.elements.splice(index, 1);
-            self.tag.values.splice(index, 1);
+                // Going to assume the indicies match for now
+                self.tag.elements.splice(index, 1);
+                self.tag.values.splice(index, 1);
 
-            self._closeEvents.splice(index, 1);
-            self._closeButtons.splice(index, 1);
+                self._closeEvents.splice(index, 1);
+                self._closeButtons.splice(index, 1);
 
-            self.settings.onTagRemove(e, text);
+                self.settings.onTagRemove(e, text);
 
-            if (index < self._inputPosition) {
-                self._inputPosition = _clamp(self._inputPosition - 1, 0, self.tag.values.length);
-            }
+                if (index < self._inputPosition) {
+                    self._inputPosition = _clamp(self._inputPosition - 1, 0, self.tag.values.length);
+                }
+            }, 1500);
 
             self._setFocusStateForContainer();
         }
@@ -1244,15 +1186,15 @@
      * @param {String} text Tag text
      * @return {String}
      */
-    Taggle.prototype._formatTag = function (text) {
+    Taggle.prototype._formatTag = function(text) {
         return this.settings.autocomplete ? text : this.settings.preserveCase ? text : text.toLowerCase();
     };
 
-    Taggle.prototype._isIndexInRange = function (index) {
+    Taggle.prototype._isIndexInRange = function(index) {
         return index >= 0 && index <= this.tag.values.length - 1;
     };
 
-    Taggle.prototype.getTags = function () {
+    Taggle.prototype.getTags = function() {
         return {
             elements: this.getTagElements(),
             values: this.getTagValues()
@@ -1261,25 +1203,25 @@
 
     // @todo
     // @deprecated use getTags().elements
-    Taggle.prototype.getTagElements = function () {
+    Taggle.prototype.getTagElements = function() {
         return [].slice.apply(this.tag.elements);
     };
 
     // @todo
     // @deprecated use getTags().values
-    Taggle.prototype.getTagValues = function () {
+    Taggle.prototype.getTagValues = function() {
         return [].slice.apply(this.tag.values);
     };
 
-    Taggle.prototype.getInput = function () {
+    Taggle.prototype.getInput = function() {
         return this.input;
     };
 
-    Taggle.prototype.getContainer = function () {
+    Taggle.prototype.getContainer = function() {
         return this.container;
     };
 
-    Taggle.prototype.add = function (text, index) {
+    Taggle.prototype.add = function(text, index) {
         var isArr = _isArray(text);
 
         if (isArr) {
@@ -1294,14 +1236,15 @@
                     }
                 }
             }
-        } else {
+        }
+        else {
             this._add(null, text, index);
         }
 
         return this;
     };
 
-    Taggle.prototype.edit = function (text, index) {
+    Taggle.prototype.edit = function(text, index) {
         if (typeof text !== 'string') {
             throw new Error('First edit argument must be of type string');
         }
@@ -1318,7 +1261,8 @@
 
         if (typeof textValue === 'string') {
             this.tag.values[index] = text;
-        } else {
+        }
+        else {
             this.tag.values[index].text = text;
         }
 
@@ -1327,7 +1271,7 @@
         return this;
     };
 
-    Taggle.prototype.move = function (currentIndex, destinationIndex) {
+    Taggle.prototype.move = function(currentIndex, destinationIndex) {
         if (typeof currentIndex !== 'number' || typeof destinationIndex !== 'number') {
             throw new Error('Both arguments must be numbers');
         }
@@ -1365,7 +1309,7 @@
         return this;
     };
 
-    Taggle.prototype.remove = function (text, all) {
+    Taggle.prototype.remove = function(text, all) {
         var len = this.tag.values.length - 1;
         var found = false;
 
@@ -1390,7 +1334,7 @@
         return this;
     };
 
-    Taggle.prototype.removeAll = function () {
+    Taggle.prototype.removeAll = function() {
         for (var i = this.tag.values.length - 1; i >= 0; i--) {
             this._remove(this.tag.elements[i]);
         }
@@ -1400,51 +1344,51 @@
         return this;
     };
 
-    Taggle.prototype.setOptions = function (options) {
+    Taggle.prototype.setOptions = function(options) {
         this.settings = _extend({}, this.settings, options || {});
 
         return this;
     };
 
-    Taggle.prototype.enable = function () {
+    Taggle.prototype.enable = function() {
         var buttons = [].slice.call(this.container.querySelectorAll('button'));
         var inputs = [].slice.call(this.container.querySelectorAll('input'));
 
-        buttons.concat(inputs).forEach(function (el) {
+        buttons.concat(inputs).forEach(function(el) {
             el.removeAttribute('disabled');
         });
 
         return this;
     };
 
-    Taggle.prototype.disable = function () {
+    Taggle.prototype.disable = function() {
         var buttons = [].slice.call(this.container.querySelectorAll('button'));
         var inputs = [].slice.call(this.container.querySelectorAll('input'));
 
-        buttons.concat(inputs).forEach(function (el) {
+        buttons.concat(inputs).forEach(function(el) {
             el.setAttribute('disabled', '');
         });
 
         return this;
     };
 
-    Taggle.prototype.setData = function (data) {
+    Taggle.prototype.setData = function(data) {
         this.data = data;
 
         return this;
     };
 
-    Taggle.prototype.getData = function () {
+    Taggle.prototype.getData = function() {
         return this.data;
     };
 
-    Taggle.prototype.attachEvents = function () {
+    Taggle.prototype.attachEvents = function() {
         var self = this;
 
         var attached = this._attachEvents();
 
         if (attached) {
-            this._closeButtons.forEach(function (button, i) {
+            this._closeButtons.forEach(function(button, i) {
                 var eventFn = self._closeEvents[i];
 
                 _on(button, 'click', eventFn);
@@ -1454,63 +1398,86 @@
         return this;
     };
 
-    Taggle.prototype.removeEvents = function () {
+    Taggle.prototype.removeEvents = function() {
         this._detachEvents();
 
         return this;
     };
 
-    Taggle.prototype._autocompleteWork = function () {
-        var a, b, i,
-            val = this.input.value,
+    Taggle.prototype._autocompleteInit = function() {
+        var a, i,
             arr = this.settings.allowedTags;
 
-        this._autocompleteClose();
-        if (!val) {
-            return false;
-        }
-        this.autocomplete.currentFocus = -1;
-
         a = document.createElement("DIV");
-        a.setAttribute("id", this.input.id + "-autocomplete-list");
+        a.setAttribute("id", this.container.id + "-autocomplete-list");
         a.setAttribute("class", "autocomplete-items");
 
         this.container.parentNode.appendChild(a);
-        this.autocomplete.showBlock = a;
+        this.autocomplete.block = a;
 
         for (i = 0; i < arr.length; i++) {
-            if (arr[i].text.substr(0, val.length).toLowerCase() == val.toLowerCase()) {
-                b = document.createElement("DIV");
-                /*make the matching letters bold:*/
-                b.innerHTML = "<strong>" + arr[i].text.substr(0, val.length) + "</strong>";
-                b.innerHTML += arr[i].text.substr(val.length);
-                b.innerHTML += "<input type='hidden' value='" + arr[i].text + "'>";
-                self = this;
-                b.addEventListener("click", function (e) {
-                    self.autocomplete.clickOnBlock = true;
-                    self.input.value = this.getElementsByTagName("input")[0].value;
-                    self._add();
-                    //TODO Вызвать событие добавления элемента
-                    self._autocompleteClose();
-                });
-                a.appendChild(b);
+            var b = document.createElement("DIV");
+
+            var c = document.createElement("SPAN");
+            c.innerHTML = arr[i].text;
+            b.appendChild(c);
+
+            var d = document.createElement('INPUT');
+            d.setAttribute('type', 'hidden');
+            d.value = arr[i].text;
+            b.appendChild(d);
+
+            self = this;
+            b.addEventListener("click", function(e) {
+                self.autocomplete.clickOnBlock = true;
+                self.input.value = e.currentTarget.getElementsByTagName("input")[0].value;
+                self._add();
+            });
+
+            a.appendChild(b);
+        }
+
+    };
+
+    Taggle.prototype._autocompleteWork = function() {
+        var a, i, text,
+            val = this.input.value,
+            arr = this.settings.allowedTags;
+
+        this._autocompleteOpen();
+        this.autocomplete.currentFocus = -1;
+
+        a = this.autocomplete.block.getElementsByTagName('DIV');
+        for (i = 0; i < a.length; i++) {
+            text = a[i].getElementsByTagName('INPUT')[0].value;
+            if (text.substr(0, val.length).toLowerCase() == val.toLowerCase() || !val) {
+                a[i].classList.add('visible');
+                var span = a[i].getElementsByTagName('span')[0];
+                if(val) {
+                    span.innerHTML =
+                        "<strong>" +  text.substr(0, val.length) + "</strong>" +
+                        text.substr(val.length);
+                } else {
+                    span.innerHTML = text;
+                }
+            } else {
+                a[i].classList.remove('visible');
             }
         }
     };
 
-    Taggle.prototype._autocompleteClose = function (el) {
-        this.autocomplete.showBlock = null;
-        var x = document.getElementsByClassName("autocomplete-items");
-        for (var i = 0; i < x.length; i++) {
-            if (el != x[i] && el != this.input) {
-                x[i].parentNode.removeChild(x[i]);
-            }
-        }
+    Taggle.prototype._autocompleteClose = function() {
+        this.autocomplete.showBlock = false;
+        this.autocomplete.block.classList.remove('visible');
     };
 
-    Taggle.prototype._autocompleteCheckElement = function (direction) {
-        var elements = document.getElementById(this.input.id + "-autocomplete-list");
-        if (elements) elements = elements.getElementsByTagName("div");
+    Taggle.prototype._autocompleteOpen = function(el) {
+        this.autocomplete.showBlock = true;
+        this.autocomplete.block.classList.add('visible');
+    };
+
+    Taggle.prototype._autocompleteCheckElement = function(direction) {
+        var elements = this.autocomplete.block.getElementsByClassName("visible");
 
         switch (direction) {
             case ARROW_DOWN: {
@@ -1537,7 +1504,7 @@
         }
     };
 
-    Taggle.prototype._autocompleteAddActive = function (elements) {
+    Taggle.prototype._autocompleteAddActive = function(elements) {
         if (!elements) return false;
         this._autocompleteRemoveActive(elements);
         if (this.autocomplete.currentFocus >= elements.length) this.autocomplete.currentFocus = 0;
@@ -1545,7 +1512,7 @@
         elements[this.autocomplete.currentFocus].classList.add("autocomplete-active");
     };
 
-    Taggle.prototype._autocompleteRemoveActive = function (elements) {
+    Taggle.prototype._autocompleteRemoveActive = function(elements) {
         for (var i = 0; i < elements.length; i++) {
             elements[i].classList.remove("autocomplete-active");
         }

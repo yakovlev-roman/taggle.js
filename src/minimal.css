@@ -57,6 +57,18 @@
     opacity: 0;
 }
 
+.taggle_list .taggle.removing {
+    transition: all 1s linear 0s;
+    padding: 5px 0;
+    font-size:0;
+    margin-right: 0;
+    opacity: 0;
+}
+
+.taggle_list .taggle.removing > .close {
+    display:none!important;
+}
+
 .taggle_list .taggle .close {
     font-size: 1.1rem;
     position: absolute;
@@ -119,3 +131,53 @@
     z-index: -1;
     visibility: hidden;
 }
+
+.autocomplete-items {
+    position: absolute;
+    border: 1px solid #d4d4d4;
+    border-bottom: none;
+    border-top: none;
+    z-index: 99;
+    /*position the autocomplete items to be the same width as the container:*/
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 0;
+    opacity: 0;
+    transition: all 0.3s linear 0s;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.autocomplete-items.visible {
+    max-height: calc(4em + 160px);
+    opacity: 1;
+}
+
+.autocomplete-items div {
+    padding: 0 10px;
+    cursor: pointer;
+    background-color: #fff;
+    border-bottom: unset;
+    max-height: 0;
+    opacity: 0;
+    transition: all 0.3s linear 0s;
+}
+.autocomplete-items div.visible {
+    max-height: calc(1em + 20px);
+    opacity: 1;
+    padding: 10px;
+    border-bottom: 1px solid #d4d4d4;
+}
+
+.autocomplete-items div:hover {
+    /*when hovering an item:*/
+    background-color: #e9e9e9;
+}
+
+.autocomplete-active {
+    /*when navigating through the items using the arrow keys:*/
+    background-color: DodgerBlue !important;
+    color: #ffffff;
+}
+
